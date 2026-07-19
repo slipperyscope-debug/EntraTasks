@@ -35,7 +35,7 @@ jobs:
       - name: Execute Create User Script
         shell: pwsh
         run: |
-          /${{ github.workspace }}/Scripts/Create-EntraUser.ps1 `
+          ${{ github.workspace }}/Scripts/Create-EntraUser.ps1 `
             -DisplayName "${{ github.event.inputs.displayName }}" `
             -UserPrincipalName "${{ github.event.inputs.userPrincipalName }}" `
             -MailNickname "${{ github.event.inputs.displayName }}" `
