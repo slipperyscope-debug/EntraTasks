@@ -19,7 +19,14 @@ $body = @{
 } | ConvertTo-Json
 
 # Send request using the access token implicitly provided by the Azure login context
+# Get the access token from the current Azure context
 $token = (Get-AzAccessToken -ResourceUrl "https://graph.microsoft.com").Token
+
+# Ensure the token is a string and not null
+if ([string]::IsNullOrEmpty($token)) {
+    throw "Failed to retrieve access token. Ensure you are logged in to Azure."
+}
+
 $headers = @{
     Authorization = "Bearer $token"
     "Content-Type" = "application/json"
