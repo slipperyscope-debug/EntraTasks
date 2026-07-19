@@ -1,0 +1,55 @@
+# .github/workflows/create-user.yml
+name: Create Entra ID User
+
+on:
+  workflow_dispatch:
+    inputs:
+      upn:
+        description: 'User Principal Name (e.g., john.doe@yourdomain.com)'
+        required: true
+      display_name:
+        description: 'Full Display Name (e.g., John Doe)'
+        required: true
+      mail_nickname:
+        description: 'Mail Nickname (e.g., jdoe)'
+        required: true
+      given_name:
+        description: 'First Name'
+        required: true
+      surname:
+        description: 'Last Name'
+        required: true
+
+# Mandated for using Entra ID OIDC tokens instead of rigid Client Secrets
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  provision-user:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate via Azure Login OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          allow-no-subscriptions: true
+          enable-AzPSSession: true
+
+      - name: Run User Creation Script
+        shell: pwsh
+        run: |
+          # Install the underlying functional MS Graph module
+          Install-Module Microsoft.Graph.Users -Force -AllowClobber -Scope CurrentUser
+          
+          # Fire target custom deployment payload script
+          ./scripts/Create-EntraUser.ps1 `
+            -UserPrincipalName "${{ github.event.inputs.upn }}" `
+            -DisplayName "${{ github.event.inputs.display_name }}" `
+            -MailNickname "${{ github.event.inputs.mail_nickname }}" `
+            -GivenName "${{ github.event.inputs.given_name }}" `
+            -SurName "${{ github.event.inputs.surname }}"
