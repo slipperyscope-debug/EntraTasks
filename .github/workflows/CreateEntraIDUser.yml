@@ -1,55 +1,42 @@
-# .github/workflows/create-user.yml
 name: Create Entra ID User
 
 on:
   workflow_dispatch:
     inputs:
-      upn:
-        description: 'User Principal Name (e.g., john.doe@yourdomain.com)'
+      displayName:
+        description: 'Full Display Name'
         required: true
-      display_name:
-        description: 'Full Display Name (e.g., John Doe)'
+      userPrincipalName:
+        description: 'UPN (e.g. user@yourdomain.com)'
         required: true
-      mail_nickname:
-        description: 'Mail Nickname (e.g., jdoe)'
-        required: true
-      given_name:
-        description: 'First Name'
-        required: true
-      surname:
-        description: 'Last Name'
+      password:
+        description: 'Temporary Password'
         required: true
 
-# Mandated for using Entra ID OIDC tokens instead of rigid Client Secrets
 permissions:
-  id-token: write
-  contents: read
+  id-token: write # Required for requesting the OIDC JWT token from GitHub
+  contents: read  # Required for actions/checkout
 
 jobs:
-  provision-user:
-    runs-on: windows-latest
+  create-user:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Authenticate via Azure Login OIDC
+      - name: Log in to Azure via OIDC
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZURE_CLIENT_ID }}
-          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          client-id: ${{ vars.AZURE_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_TENANT_ID }}
           allow-no-subscriptions: true
-          enable-AzPSSession: true
+          enable-AzPSSession: true # Enables Azure PowerShell context
 
-      - name: Run User Creation Script
+      - name: Execute Create User Script
         shell: pwsh
         run: |
-          # Install the underlying functional MS Graph module
-          Install-Module Microsoft.Graph.Users -Force -AllowClobber -Scope CurrentUser
-          
-          # Fire target custom deployment payload script
-          ./scripts/Create-EntraUser.ps1 `
-            -UserPrincipalName "${{ github.event.inputs.upn }}" `
-            -DisplayName "${{ github.event.inputs.display_name }}" `
-            -MailNickname "${{ github.event.inputs.mail_nickname }}" `
-            -GivenName "${{ github.event.inputs.given_name }}" `
-            -SurName "${{ github.event.inputs.surname }}"
+          ./create-user.ps1 `
+            -DisplayName "${{ github.event.inputs.displayName }}" `
+            -UserPrincipalName "${{ github.event.inputs.userPrincipalName }}" `
+            -MailNickname "${{ github.event.inputs.displayName }}" `
+            -Password "${{ github.event.inputs.password }}"
