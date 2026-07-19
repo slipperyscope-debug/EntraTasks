@@ -1,4 +1,5 @@
 # scripts/Create-EntraUser.ps1
+# Adding a comment
 param (
     [Parameter(Mandatory=$true)]
     [string]$UserPrincipalName,
