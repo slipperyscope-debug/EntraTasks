@@ -25,5 +25,5 @@ $headers = @{
     "Content-Type" = "application/json"
 }
 
-Invoke-RestMethod -Uri "https://graph.microsoft.com/v1.0/users" -Method Post -Headers $headers -Body $body
+Invoke-RestMethod -Uri "https://microsoft.com" -Method Post -Headers $headers -Body $body
 Write-Output "Successfully requested creation for $UserPrincipalName"
